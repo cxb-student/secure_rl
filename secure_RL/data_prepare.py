@@ -2,7 +2,7 @@ import json
 from tqdm import tqdm
 import os
 import sqlite3
-text2sql_data_dir = 'C:\\Users\\Lenovo\\torch\\research\\NL2SQL\\Code-S\\data\\sft_spider_dev_text2sql.json'
+text2sql_data_dir = 'C:\\Users\\Lenovo\\torch\\research\\NL2SQL\\Code-S\\data\\sft_spider_train_text2sql.json'
 
 
 def prepare_text2sql_prefix_sequence(data):
@@ -217,17 +217,35 @@ dataset = filter_schema(dataset)
 for data in dataset:
     data["schema_sequence"] = get_db_schema_sequence(data["schema"])
     data["content_sequence"] = get_matched_content_sequence(data["matched_contents"])
-unique_prefix_sequences = set()
+def remove_duplicates_by_prefix(sequences, prefix_length=30):
+    unique_sequences = []
+    prefix_set = set()
+    
+    for seq in sequences:
+
+        prefix = seq[:prefix_length]
+
+        if prefix not in prefix_set:
+            prefix_set.add(prefix)
+            unique_sequences.append(seq)
+    
+    return unique_sequences
+
 all_prefix_sequences = []
 
 for i in range(len(dataset)):
     data = dataset[i]
     prefix_seq = prepare_text2sql_prefix_sequence(data)
-    unique_prefix_sequences.add(prefix_seq)
     all_prefix_sequences.append({
         "index": i,
         "prefix_sequence": prefix_seq
     })
+raw_prefix_sequences = [item["prefix_sequence"] for item in all_prefix_sequences]
+unique_prefix_sequences = remove_duplicates_by_prefix(raw_prefix_sequences)
+
 print(f"总共抽取了{len(unique_prefix_sequences)}个数据库描述")
-with open('spider_dev_db.json', 'w', encoding='utf-8') as f:
-    json.dump(list(unique_prefix_sequences), f, ensure_ascii=False, indent=2)
+print(f"去重前共有{len(raw_prefix_sequences)}个数据库描述")
+print(f"去除了{len(raw_prefix_sequences) - len(unique_prefix_sequences)}个重复项")
+
+with open('data_synthesis/original_data/spider_train_db.json', 'w', encoding='utf-8') as f:
+    json.dump(unique_prefix_sequences, f, ensure_ascii=False, indent=2)
