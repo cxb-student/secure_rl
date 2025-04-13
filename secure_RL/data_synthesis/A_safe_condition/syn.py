@@ -1,79 +1,94 @@
-# 生成安全条件
+#生成安全条件
+
 import json
-import re
 import random
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
+import argparse
+import os
 
+from tqdm import tqdm
+from transformers import  AutoTokenizer
+from vllm import LLM, SamplingParams
+print("开始生成安全条件")
+def parse_args():
+    parser = argparse.ArgumentParser(description='生成安全条件')
+    parser.add_argument('--prompts_path', type=str,
+                        help='提示词打包存放处')
+    parser.add_argument('--model_path', type=str,
+                        help='模型路径')
+    parser.add_argument('--db_dataset', type=str, 
+                        help='数据库数据集路径')
+    parser.add_argument('--ex_path', type=str, 
+                        help='示例文件路径')
+    parser.add_argument('--range_type', type=str, choices=["cells", "whole_column"],
+                        help='范围类型')
+    parser.add_argument('--output_path', type=str, 
+                        help='输出文件路径')
+    parser.add_argument('--batch_size', type=int)
+    return parser.parse_args()
 
-def model_fn(model_path, input):
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForCausalLM.from_pretrained(model_path)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-    inputs = tokenizer(input, return_tensors="pt").to(device)
-    with torch.no_grad():
-        outputs = model.generate(
-            inputs["input_ids"],
-            max_length=2048,
-            temperature=0.7,
-            top_p=0.9,
-            do_sample=True
-        )
-    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return generated_text
+def main():
+    args = parse_args()
 
-def extract_fn(input, label):
-    if label == "```sql":
-        pattern = rf"{label}：([^```]+)"
+#加载数据库数据
+
+    db_dataset = json.load(open(args.db_dataset, "r",encoding="utf-8"))
+    ex_data = json.load(open(args.ex_path, "r",encoding="utf-8"))
+    prompts = []
+
+#提示词打包
+
+    if args.range_type == "cells":
+        exs = ex_data["cells"]
+        for i in range(len(db_dataset)):
+            ex = random.choices(exs, weights=[1, 1], k=2)
+            ex = list(set(ex))
+            print(ex)
+            ex_string = ex[0] + "\n\n" + "There is another example" + "\n" + ex[1]
+            schema_str = db_dataset[i]
+            prompt = f"**Task Overview**\nCreate a reasonable and high-quality safety condition based on the provided information. Also, output the corresponding specific_column—the columns mentioned in safe_condition and specific_value-the value mentioned in the safe_condition\n\n**Database Schema**\n{schema_str}\n\n**Output Format Requirements**\nsafe_condition:\nspecific_column:[]\nspecific_value:\n\n**Safe condition Requirements**\n1. Find out what sensitive information could be in the Database.\n2. Find out only 1 sensitive information in the whole database.\n3. The security condition to look for can be a column that cannot be accessed\n4. (Very important) Ensure that the final security conditions are reasonable according to the related background of this database.\n5.There is no need for excessive explanations, just keep it simple.\n\n**example**\n{ex_string}\n\nThere are just 2 examples from your colleagues, where you can judge for yourself whether it's right or wrong, and finally give your own answer.\n\n**Answer**\nLet's proceed step by step,and sure the final answer have the format of \"safe_condition:\",\"specific_value:\",and\"specific_column:\"."
+            prompts.append(prompt)
+            with open(args.prompts_path, "w", encoding="utf-8") as fw:
+                fw.write(json.dumps(prompts, indent=2, ensure_ascii=False))
+            print("prompts保存成功")
     else:
-        pattern = rf"{label}：([^\n]+)"
-    match = re.search(pattern, input)
-    if match:
-        return f"{label}：{match.group(1)}"
-    else:
-        return f"{label}：No safety condition found."
-def weighted_random_choice(items, weights):
-    return random.choices(items, weights=weights, k=1)[0]
+        exs = ex_data["whole_column"]
+        for i in range(len(db_dataset)):
+            ex = random.sample(exs, k=2)
+            ex = list(set(ex))
+            print(ex)
+            ex_string = ex[0] + "\n\n" + "There is another example" + "\n" + ex[1]
+            schema_str = db_dataset[i]
+            prompt = f"**Task Overview**\nCreate a reasonable and high-quality safety condition based on the provided information. Also, output the corresponding specific_column(the columns mentioned in safe_condition).\n\n**Database Schema**\n{schema_str}\n\n**Output Format Requirements**\nsafe_condition:\nspecific_column:[]\n\n**Safe condition Requirements**\n1. Find out what sensitive information could be in the Database.\n2. Find out only 1 sensitive information in the whole database.\n3. The security condition to look for can be a column that cannot be accessed\n4. (Very important) Ensure that the final security conditions are reasonable according to the related background of this database.\n5.There is no need for excessive explanations, just keep it simple.\n\n**example**\n{ex_string}\n\nThere are just 2 examples from your colleagues, where you can judge for yourself whether it's right or wrong, and finally give your own answer.\n\n**Answer**\nLet's proceed step by step,and sure the final answer have the format of \"safe_condition:\",\"specific_value:\",and\"specific_column:\"."
+            prompts.append(prompt)
+            with open(args.prompts_path, "w", encoding="utf-8") as fw:
+                fw.write(json.dumps(prompts, indent=2, ensure_ascii=False))
+            print("prompts保存成功")
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
 
-model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-db_dataset = "C:\\Users\\Lenovo\\torch\\research\\NL2SQL\\secure_RL\\data_synthesis\\original_data\\spider_dev_db.json"
-db_dataset = json.load(open(db_dataset,"r"))
-ex_data = [
-  "table concert , columns = [ concert.concert_name ( text) , concert.theme ( text | values : Free choice , Free choice 2 ) , concert.concert_id ( int | primary key ) , concert.year ( text) , concert.stadium_id ( text ) ]\ntable singer_in_concert , columns = [ singer_in_concert.concert_id ( int  ) , singer_in_concert.singer_id ( text | primary key  ) ]\ntable singer , columns = [ singer.name ( text) , singer.singer_id ( int  ) , singer.age ( int ) , singer.country ( text  ) , singer.is_male ( bool) , singer.song_name ( text  ) , singer.song_release_year ( text ) ]\ntable stadium , columns = [ stadium.name ( text) , stadium.highest ( int  ) , stadium.capacity ( int) , stadium.location ( text) , stadium.lowest ( int  ) , stadium.average ( int) , stadium.stadium_id ( int | primary key) ]\nforeign keys :\nconcert.stadium_id = stadium.stadium_id\nsinger_in_concert.singer_id = singer.singer_id\nsinger_in_concert.concert_id = concert.concert_id\nmatched contents : None\n\nFor example, now that you have the above database, you can propose a corresponding security condition. \nYou can output：\"safe_condition:Age of the singer is sensitive information.\"\nIt is just an example from your colleagues, where you can judge for yourself whether it's right or wrong, and finally give your own answer.",
-  "table concert , columns = [ concert.concert_name ( text) , concert.theme ( text | values : Free choice , Free choice 2 ) , concert.concert_id ( int | primary key ) , concert.year ( text) , concert.stadium_id ( text ) ]\ntable singer_in_concert , columns = [ singer_in_concert.concert_id ( int  ) , singer_in_concert.singer_id ( text | primary key  ) ]\ntable singer , columns = [ singer.name ( text) , singer.singer_id ( int  ) , singer.age ( int ) , singer.country ( text  ) , singer.is_male ( bool) , singer.song_name ( text  ) , singer.song_release_year ( text ) ]\ntable stadium , columns = [ stadium.name ( text) , stadium.highest ( int  ) , stadium.capacity ( int) , stadium.location ( text) , stadium.lowest ( int  ) , stadium.average ( int) , stadium.stadium_id ( int | primary key) ]\nforeign keys :\nconcert.stadium_id = stadium.stadium_id\nsinger_in_concert.singer_id = singer.singer_id\nsinger_in_concert.concert_id = concert.concert_id\nmatched contents : None\n\nFor example, now that you have the above database, you can propose a corresponding security condition. \nYou can output：\"safe_condition:Age of singers younger than 18 is sensitive information\"\nIt is just an example from your colleagues, where you can judge for yourself whether it's right or wrong, and finally give your own answer."
-]
-label_safe = "safe_condition"
+    llm = LLM(model=args.model_path,
+             tensor_parallel_size=1,
+             gpu_memory_utilization=0.9,)
+    print(f"loading model from: {args.model_path}")
+    os.system("nvidia-smi")
+    sampling_params = SamplingParams(temperature=0, top_p=0.95, max_tokens=500)
+    batch_size = args.batch_size
+    chat_prompts = [tokenizer.apply_chat_template(
+    [{"role": "user", "content": prompt}],
+    add_generation_prompt=True, tokenize=False
+) for prompt in prompts]
 
-for i in range(len(db_dataset)):
-    print(f"第{i+1}个")
-    # 使用随机选择函数，70%概率选择ex_data[0]，30%概率选择ex_data[1]
-    ex = weighted_random_choice(ex_data, weights=[0.7, 0.3])
-    schema_str = db_dataset[i]
-    prompt_safe =f"""**Task Overview**
-Create an reasonable and high-quality safety conditions based on the provided information.
+    batches = [chat_prompts[i:i + batch_size] for i in range(0, len(chat_prompts), batch_size)]
 
-**Database Schema**
-{schema_str}
+    results = []
+    for batch in tqdm(batches, unit="batch"):
+       outputs = llm.generate(batch, sampling_params=sampling_params)
+       for data, output in zip(batch, outputs):
+          raw_responses = output.outputs[0].text
+          results.append({'input': data, 'output': raw_responses})
 
-**Output Format Requirements**
-safe_condition：
+    with open(args.output_path, "w", encoding="utf-8") as fw:
+        fw.write(json.dumps(results, indent=2, ensure_ascii=False))
+    print(f"Results saved in {args.output_path}")
 
-**Safe condition Requirements**
-1. Find out what sensitive information could be in the Database.
-2. Find out only 1 sensitive information in the whole database.
-3. The security condition to look for can be a column that cannot be accessed, or certain rows in certain columns.
-4. (Very important) Ensure that the final security conditions are reasonable according to the related background of this database.
-
-**example**
-{ex}
-**Answer**
-Let's proceed step by step."""
-    print(prompt_safe)
-    output = model_fn(model_path,prompt_safe)
-    safe_condition = extract_fn(output,label_safe)
-    db_dataset[i] = db_dataset[i] + safe_condition
-
-    print(safe_condition)
-with open('spider_dev_db_with_safe.json', 'w', encoding='utf-8') as f:
-    json.dump(list(db_dataset), f, ensure_ascii=False, indent=2)
+if __name__ == "__main__":
+    main()
