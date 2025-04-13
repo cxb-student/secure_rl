@@ -61,8 +61,8 @@ def main():
             with open(args.prompts_path, "w", encoding="utf-8") as fw:
                 fw.write(json.dumps(prompts, indent=2, ensure_ascii=False))
             print("prompts保存成功")
+#加载模型和分词器，和infer文件里的方法一模一样
     tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
-
     llm = LLM(model=args.model_path,
              tensor_parallel_size=1,
              gpu_memory_utilization=0.9,)
@@ -74,16 +74,15 @@ def main():
     [{"role": "user", "content": prompt}],
     add_generation_prompt=True, tokenize=False
 ) for prompt in prompts]
-
     batches = [chat_prompts[i:i + batch_size] for i in range(0, len(chat_prompts), batch_size)]
-
     results = []
+#批量推理
     for batch in tqdm(batches, unit="batch"):
        outputs = llm.generate(batch, sampling_params=sampling_params)
        for data, output in zip(batch, outputs):
           raw_responses = output.outputs[0].text
           results.append({'input': data, 'output': raw_responses})
-
+#保存结果
     with open(args.output_path, "w", encoding="utf-8") as fw:
         fw.write(json.dumps(results, indent=2, ensure_ascii=False))
     print(f"Results saved in {args.output_path}")

@@ -15,10 +15,11 @@ python syn.py \
 
 #这个是cells的
 python syn.py \
-  --model_path "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B" \
-  --db_dataset "../original_data/all_with_column.json" \
-  --ex_path "./ex.json" \
-  --prompts_path"./prompts.json" \
-  --range_type "cells" \
-  --batch_size 16 \
-  --output_path "./output_cells.json"
+--prompts_path "./prompts.json" \
+--model_path "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B" \
+--db_dataset "../original_data/all_with_column.json" \
+--ex_path "./ex.json" \
+--range_type "cells" \
+--batch_size 16 \
+--output_path "./output_cells.json"
+  read -p "Press enter to exit"
