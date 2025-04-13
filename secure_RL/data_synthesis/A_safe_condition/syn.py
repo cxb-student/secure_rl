@@ -40,8 +40,7 @@ def main():
     if args.range_type == "cells":
         exs = ex_data["cells"]
         for i in range(len(db_dataset)):
-            ex = random.choices(exs, weights=[1, 1], k=2)
-            ex = list(set(ex))
+            ex = random.sample(exs, k=2)
             print(ex)
             ex_string = ex[0] + "\n\n" + "There is another example" + "\n" + ex[1]
             schema_str = db_dataset[i]
@@ -54,7 +53,6 @@ def main():
         exs = ex_data["whole_column"]
         for i in range(len(db_dataset)):
             ex = random.sample(exs, k=2)
-            ex = list(set(ex))
             print(ex)
             ex_string = ex[0] + "\n\n" + "There is another example" + "\n" + ex[1]
             schema_str = db_dataset[i]
