@@ -2,7 +2,7 @@ import json
 from tqdm import tqdm
 import os
 import sqlite3
-text2sql_data_dir = 'C:\\Users\\Lenovo\\torch\\research\\NL2SQL\\Code-S\\data\\sft_spider_train_text2sql.json'
+text2sql_data_dir = 'C:\\Users\\Lenovo\\torch\\research\\NL2SQL\\Code-S\\data\\sft_all_merged_train_text2sql.json'
 
 
 def prepare_text2sql_prefix_sequence(data):
@@ -247,5 +247,5 @@ print(f"总共抽取了{len(unique_prefix_sequences)}个数据库描述")
 print(f"去重前共有{len(raw_prefix_sequences)}个数据库描述")
 print(f"去除了{len(raw_prefix_sequences) - len(unique_prefix_sequences)}个重复项")
 
-with open('data_synthesis/original_data/spider_train_db.json', 'w', encoding='utf-8') as f:
+with open('data_synthesis/original_data/all.json', 'w', encoding='utf-8') as f:
     json.dump(unique_prefix_sequences, f, ensure_ascii=False, indent=2)
