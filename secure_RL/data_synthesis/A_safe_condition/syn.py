@@ -44,7 +44,7 @@ def main():
             print(ex)
             ex_string = ex[0] + "\n\n" + "There is another example" + "\n" + ex[1]
             schema_str = db_dataset[i]
-            prompt = f"**Task Overview**\nCreate a reasonable and high-quality safety condition based on the provided information. Also, output the corresponding specific_column—the columns mentioned in safe_condition and specific_value-the value mentioned in the safe_condition\n\n**Database Schema**\n{schema_str}\n\n**Output Format Requirements**\nsafe_condition:\nspecific_column:[]\nspecific_value:\n\n**Safe condition Requirements**\n1. Find out what sensitive information could be in the Database.\n2. Find out only 1 sensitive information in the whole database.\n3. The security condition to look for can be a column that cannot be accessed\n4. (Very important) Ensure that the final security conditions are reasonable according to the related background of this database.\n5.There is no need for excessive explanations, just keep it simple.\n\n**example**\n{ex_string}\n\nThere are just 2 examples from your colleagues, where you can judge for yourself whether it's right or wrong, and finally give your own answer.\n\n**Answer**\nLet's proceed step by step,and sure the final answer have the format of \"safe_condition:\",\"specific_value:\",and\"specific_column:\"."
+            prompt = f"**Task Overview**\nBased on the provided information, create a reasonable and high-quality safety condition. Also, extract and output the corresponding specific_column (i.e., the columns mentioned in the safety condition) and specific_value (i.e., the value referenced in the safety condition).\n\n**Database Schema**\n{schema_str}\n\n**Output Format Requirements**\nsafe_condition:\nspecific_column: []\nspecific_value:\n\n**Safe Condition Requirements**\n1. Identify potential sensitive information within the database.\n2. Focus on only one piece of sensitive information across the entire database.\n3. The safety condition can refer to a column that should not be accessible.\n4. (Very important) Ensure that the final safety condition is reasonable and aligned with the background context of the database.\n5. Avoid excessive explanations. Keep it concise and clear.\n\n**Example**\n{ex_string}\n\nBelow are two examples provided by your colleagues. You may evaluate their correctness and then provide your own answer.\n\n**Answer**\nLet’s proceed step by step. Make sure the final answer follows the format: \"safe_condition:\", \"specific_column:\", and \"specific_value:\"."
             prompts.append(prompt)
             with open(args.prompts_path, "w", encoding="utf-8") as fw:
                 fw.write(json.dumps(prompts, indent=2, ensure_ascii=False))
@@ -56,7 +56,7 @@ def main():
             print(ex)
             ex_string = ex[0] + "\n\n" + "There is another example" + "\n" + ex[1]
             schema_str = db_dataset[i]
-            prompt = f"**Task Overview**\nCreate a reasonable and high-quality safety condition based on the provided information. Also, output the corresponding specific_column(the columns mentioned in safe_condition).\n\n**Database Schema**\n{schema_str}\n\n**Output Format Requirements**\nsafe_condition:\nspecific_column:[]\n\n**Safe condition Requirements**\n1. Find out what sensitive information could be in the Database.\n2. Find out only 1 sensitive information in the whole database.\n3. The security condition to look for can be a column that cannot be accessed\n4. (Very important) Ensure that the final security conditions are reasonable according to the related background of this database.\n5.There is no need for excessive explanations, just keep it simple.\n\n**example**\n{ex_string}\n\nThere are just 2 examples from your colleagues, where you can judge for yourself whether it's right or wrong, and finally give your own answer.\n\n**Answer**\nLet's proceed step by step,and sure the final answer have the format of \"safe_condition:\",\"specific_value:\",and\"specific_column:\"."
+            prompt = f"**Task Overview**\nBased on the provided information, create a reasonable and high-quality safety condition. Also, output the corresponding specific_column (i.e., the column(s) mentioned in the safety condition).\n\n**Database Schema**\n{schema_str}\n\n**Output Format Requirements**\nsafe_condition:\nspecific_column: []\n\n**Safe Condition Requirements**\n1. Identify what sensitive information may exist in the database.\n2. Focus on only one piece of sensitive information across the entire database.\n3. The safety condition can involve a column that should not be accessed.\n4. (Very important) Ensure the final safety condition is reasonable and consistent with the database's context.\n5. Avoid unnecessary explanations. Keep it simple and clear.\n\n**Example**\n{ex_string}\n\nHere are two examples from your colleagues. Evaluate them yourself to determine whether they are correct, and then provide your own answer.\n\n**Answer**\nLet’s proceed step by step. Make sure the final answer follows this format: \"safe_condition:\", \"specific_value:\", and \"specific_column:\"."
             prompts.append(prompt)
             with open(args.prompts_path, "w", encoding="utf-8") as fw:
                 fw.write(json.dumps(prompts, indent=2, ensure_ascii=False))
@@ -77,14 +77,17 @@ def main():
     batches = [chat_prompts[i:i + batch_size] for i in range(0, len(chat_prompts), batch_size)]
     results = []
 #批量推理
+    lun = 0
     for batch in tqdm(batches, unit="batch"):
        outputs = llm.generate(batch, sampling_params=sampling_params)
        for data, output in zip(batch, outputs):
           raw_responses = output.outputs[0].text
           results.append({'input': data, 'output': raw_responses})
-#保存结果
-    with open(args.output_path, "w", encoding="utf-8") as fw:
-        fw.write(json.dumps(results, indent=2, ensure_ascii=False))
+#每过5个batch保存结果
+    if lun % 5 == 0:
+          with open(args.output_path, "w", encoding="utf-8") as fw:
+            fw.write(json.dumps(results, indent=2, ensure_ascii=False))
+    lun += 1
     print(f"Results saved in {args.output_path}")
 
 if __name__ == "__main__":
