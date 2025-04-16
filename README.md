@@ -1,4 +1,1 @@
 # secure_rl
-
-数据存放在original_data中，其中all和all_with_column是整体的数据库
-总共150条
