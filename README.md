@@ -20,7 +20,7 @@ The benchmark database is composed of the Spider and Bird databases.
 You can download the Spider and Bird databases separately and place their folders together.
 
 
-## 🚀 Usage
+## 🚀 Evaluation
 
 （评估代码不知道要不要放上去）
 
