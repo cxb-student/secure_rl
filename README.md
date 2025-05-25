@@ -6,9 +6,11 @@ secure-sql is a benchmarking project for secure SQL query detection. It offers a
 Title: *SecureSQL: Evaluating Data Leakage of Large Language Models as  Natural Language Interfaces to Databases* 
 
 Paper Link: https://aclanthology.org/2024.findings-emnlp.346/
+
 ## 📁 Dataset
 
 This repository contains only one dataset, which merges selected portions of the Spider and Bird test sets into a security-focused benchmark. 
+
 For complete details and methodology, please refer to the paper.
 
 ## 📦 Database
