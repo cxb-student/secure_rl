@@ -20,7 +20,7 @@ The benchmark database is composed of the Spider and Bird databases.You can down
 
 ## 🚀 Usage
 
-Since this repository only provides the benchmark dataset, there is no evaluation or training code included. You can use the data to develop and test your own secure SQL detection methods.
+（评估代码不知道要不要放上去）
 
 ## 🧾 Citation
 
