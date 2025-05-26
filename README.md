@@ -26,21 +26,13 @@ We use the following metrics to evaluate secure SQL detection methods:
 
 - **Accuracy**:  
   The proportion of correctly predicted queries (both safe and unsafe) out of all queries.  
-  \[
-  \text{Accuracy} = \frac{\text{Correct Predictions}}{\text{Total Queries}}
-  \]
 
 - **Recall**:  
   The proportion of safe queries correctly identified as safe.  
-  \[
-  \text{Recall} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}
-  \]
 
 - **Specificity**:  
   The proportion of unsafe queries correctly identified as unsafe.  
-  \[
-  \text{Specificity} = \frac{\text{True Negatives}}{\text{True Negatives} + \text{False Positives}}
-  \]
+
 ## 🧾 Citation
 
 If you use this dataset in your research, please cite:
