@@ -20,10 +20,14 @@ The benchmark database is composed of the Spider and Bird databases.
 You can download the Spider and Bird databases separately and place their folders together.
 
 
-## 🚀 Evaluation
+## 🚀 Evaluation Metrics
+This section defines the metrics used to evaluate secure SQL detection methods:
 
-（评估代码不知道要不要放上去）
+Accuracy: The ratio of correctly predicted queries to the total number of queries.
 
+Recall：The probability of correctly predicting positive samples.
+
+Specificity：The probability of accurately predicting negative samples.
 ## 🧾 Citation
 
 If you use this dataset in your research, please cite:
