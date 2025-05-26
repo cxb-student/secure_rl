@@ -21,13 +21,26 @@ You can download the Spider and Bird databases separately and place their folder
 
 
 ## 🚀 Evaluation Metrics
-This section defines the metrics used to evaluate secure SQL detection methods:
 
-Accuracy: The ratio of correctly predicted queries to the total number of queries.
+We use the following metrics to evaluate secure SQL detection methods:
 
-Recall：The probability of correctly predicting positive samples.
+- **Accuracy**:  
+  The proportion of correctly predicted queries (both safe and unsafe) out of all queries.  
+  \[
+  \text{Accuracy} = \frac{\text{Correct Predictions}}{\text{Total Queries}}
+  \]
 
-Specificity：The probability of accurately predicting negative samples.
+- **Recall**:  
+  The proportion of safe queries correctly identified as safe.  
+  \[
+  \text{Recall} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}
+  \]
+
+- **Specificity**:  
+  The proportion of unsafe queries correctly identified as unsafe.  
+  \[
+  \text{Specificity} = \frac{\text{True Negatives}}{\text{True Negatives} + \text{False Positives}}
+  \]
 ## 🧾 Citation
 
 If you use this dataset in your research, please cite:
