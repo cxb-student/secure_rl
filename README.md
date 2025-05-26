@@ -27,7 +27,7 @@ You can download the Spider and Bird databases separately and place their folder
 ## 🧾 Citation
 
 If you use this dataset in your research, please cite:
-、、、
+```
 @inproceedings{song-etal-2024-securesql,
     title = "{S}ecure{SQL}: Evaluating Data Leakage of Large Language Models as Natural Language Interfaces to Databases",
     author = "Song, Yanqi  and
@@ -49,5 +49,5 @@ If you use this dataset in your research, please cite:
     pages = "5975--5990",
     abstract = "With the widespread application of Large Language Models (LLMs) in Natural Language Interfaces to Databases (NLIDBs), concerns about security issues in NLIDBs have been increasing gradually. However, research on sensitive data leakage in NLIDBs is relatively limited. Therefore, we propose a benchmark to assess the potential of language models to leak sensitive data when generating SQL queries. This benchmark covers 932 samples from 34 different domains, including medical, legal, financial, and political aspects. We evaluate 15 models from six LLM families, and the results show that the model with the best performance has an accuracy of 61.7{\%}, whereas humans achieve an accuracy of 94{\%}. Most models perform close to or even below the level of random selection. We also evaluate two common attack methods, namely prompt injection and inference attacks, as well as a defense method based on chain-of-thoughts (COT) prompting. Experimental results show that both attack methods significantly impact the model, while the defense method based on COT prompting dose not significantly improve accuracy, further highlighting the severity of sensitive data leakage issues in NLIDBs. We hope this research will draw more attention and further study from the researchers on this issue."
 }
-、、、
+```
 
